@@ -10,4 +10,4 @@ For other project concerns, see [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_
 
 ## Current scope
 
-This repository contains only a minimal Rust crate scaffold. It does not parse or execute AP CSP Pseudocode source and has no language runtime or sandbox. This policy must be updated before source execution is introduced.
+This crate parses and executes the textual profile from the College Board's 2026 AP Computer Science Principles reference sheet. It does not sandbox programs. The host supplies input, output, randomness, and the robot grid; a custom host may perform additional side effects. Execution-step and recursion limits reduce runaway execution but do not bound all resource use or host behavior.
