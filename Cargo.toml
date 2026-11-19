@@ -7,8 +7,12 @@ license = "GPL-3.0-or-later"
 repository = "https://github.com/diegopn/potoo-ap-csp-pseudocode-interpreter"
 homepage = "https://diegopn.github.io/potoo-site/manual/ap-csp-pseudocode/"
 readme = "README.md"
-description = "An evaluation scaffold for an independent Rust implementation of the AP CSP assessment pseudocode notation."
+description = "A Rust interpreter for the AP CSP assessment pseudocode notation."
 
 [lib]
 name = "potoo_ap_csp_pseudocode_interpreter"
 path = "src/lib.rs"
+
+[[bin]]
+name = "potoo-ap-csp"
+path = "src/bin/potoo-ap-csp.rs"
