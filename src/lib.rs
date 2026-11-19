@@ -616,6 +616,9 @@ impl Parser {
     }
 
     fn block(&mut self) -> Result<Vec<Stmt>, Diagnostic> {
+        while self.is(&TokenKind::Newline) {
+            self.advance();
+        }
         self.expect(&TokenKind::LeftBrace, "expected `{` to begin block")?;
         let mut statements = Vec::new();
         self.separators();
@@ -1528,5 +1531,70 @@ fn checked_index(index: usize, len: usize) -> Result<usize, RuntimeError> {
         })
     } else {
         Ok(index - 1)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Execution, Host, Interpreter, Value, check, parse};
+
+    struct TestHost;
+
+    impl Host for TestHost {
+        fn input(&mut self) -> Result<Value, String> {
+            Err("unexpected input".into())
+        }
+
+        fn display(&mut self, _value: &Value) -> Result<(), String> {
+            Ok(())
+        }
+
+        fn random_integer(&mut self, lower: i64, _upper: i64) -> Result<i64, String> {
+            Ok(lower)
+        }
+    }
+
+    fn run(source: &str) -> Execution {
+        let program = check(parse(source).expect("source should parse"))
+            .expect("source should pass semantic checks");
+        Interpreter::new(TestHost)
+            .run(&program)
+            .expect("program should run")
+    }
+
+    #[test]
+    fn if_block_can_open_on_next_line() {
+        let execution = run("IF (TRUE)\n{\n  result ← 7\n}");
+        assert_eq!(execution.variables.get("result"), Some(&Value::Number(7.0)));
+    }
+
+    #[test]
+    fn if_block_accepts_inline_open_brace() {
+        let execution = run("IF (TRUE) { result ← 7 }");
+        assert_eq!(execution.variables.get("result"), Some(&Value::Number(7.0)));
+    }
+
+    #[test]
+    fn for_each_block_can_open_on_next_line() {
+        let execution = run("total ← 0\nFOR EACH item IN [1, 2]\n{\n  total ← total + item\n}");
+        assert_eq!(execution.variables.get("total"), Some(&Value::Number(3.0)));
+    }
+
+    #[test]
+    fn for_each_block_accepts_inline_open_brace() {
+        let execution = run("total ← 0\nFOR EACH item IN [1, 2] { total ← total + item }");
+        assert_eq!(execution.variables.get("total"), Some(&Value::Number(3.0)));
+    }
+
+    #[test]
+    fn repeat_until_block_can_open_on_next_line() {
+        let execution = run("count ← 0\nREPEAT UNTIL (count = 2)\n{\n  count ← count + 1\n}");
+        assert_eq!(execution.variables.get("count"), Some(&Value::Number(2.0)));
+    }
+
+    #[test]
+    fn repeat_until_block_accepts_inline_open_brace() {
+        let execution = run("count ← 0\nREPEAT UNTIL (count = 2) { count ← count + 1 }");
+        assert_eq!(execution.variables.get("count"), Some(&Value::Number(2.0)));
     }
 }
