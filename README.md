@@ -35,11 +35,92 @@ Call `parse(source)` and `check(program)`, then pass the checked program to `Int
 
 ## Command line
 
+Save this program as `example.apcsp`:
+
 ```text
-cargo run --locked -- source.apcsp
+DISPLAY("Hello, AP CSP!")
 ```
 
-The runner reads one UTF-8 source file, reads input from standard input, and writes `DISPLAY` output to standard output.
+Build or install the CLI from a source checkout with Rust 1.93 or later:
+
+```sh
+cargo build --release --locked --bin potoo-ap-csp
+cargo install --path . --locked --bin potoo-ap-csp
+```
+
+Run a source file with the installed command or directly from the checkout:
+
+```sh
+potoo-ap-csp example.apcsp
+cargo run --locked --bin potoo-ap-csp -- example.apcsp
+```
+
+The example displays `Hello, AP CSP!`. The runner reads one UTF-8 source file, reads input from standard input, and writes `DISPLAY` output to standard output.
+
+## Install a prebuilt CLI
+
+The release workflow is configured to publish native v0.1.0 packages for Linux x86_64 GNU, Windows x86_64 MSVC, Intel macOS x86_64, and Apple silicon macOS arm64. After publication, download your system's archive and `SHA256SUMS` from the [GitHub Releases page](https://github.com/diegopn/potoo-ap-csp-pseudocode-interpreter/releases). Each archive contains `potoo-ap-csp` (or `potoo-ap-csp.exe` on Windows) and the repository license. Run the commands below from the folder containing both downloads.
+
+### Linux x86_64 GNU
+
+```sh
+set -euo pipefail
+archive="potoo-ap-csp-pseudocode-interpreter-v0.1.0-x86_64-unknown-linux-gnu.tar.gz"
+grep -F "  $archive" SHA256SUMS | sha256sum --check -
+tar -xzf "$archive"
+mkdir -p "$HOME/.local/bin"
+install -m 755 "${archive%.tar.gz}/potoo-ap-csp" "$HOME/.local/bin/potoo-ap-csp"
+export PATH="$HOME/.local/bin:$PATH"
+potoo-ap-csp example.apcsp
+```
+
+The Linux build is produced on Ubuntu 22.04 and may require a sufficiently recent glibc. Add the `export PATH="$HOME/.local/bin:$PATH"` line to your shell profile to keep the command available in future sessions.
+
+### Windows x86_64 MSVC (PowerShell)
+
+```powershell
+$archive = "potoo-ap-csp-pseudocode-interpreter-v0.1.0-x86_64-pc-windows-msvc.zip"
+$line = Get-Content .\SHA256SUMS | Where-Object { $_.EndsWith("  $archive") } | Select-Object -First 1
+if (-not $line) { throw "No SHA256SUMS entry found for $archive" }
+$expected = ($line -split '\s+')[0]
+$actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($actual -ne $expected) { throw "SHA-256 mismatch for $archive" }
+$installDir = Join-Path $env:USERPROFILE ".local\bin"
+New-Item -ItemType Directory -Force $installDir | Out-Null
+Expand-Archive -LiteralPath $archive -DestinationPath $installDir
+$exe = Join-Path $installDir "potoo-ap-csp-pseudocode-interpreter-v0.1.0-x86_64-pc-windows-msvc\potoo-ap-csp.exe"
+& $exe .\example.apcsp
+```
+
+To run `potoo-ap-csp.exe` from any folder, add `$env:USERPROFILE\.local\bin\potoo-ap-csp-pseudocode-interpreter-v0.1.0-x86_64-pc-windows-msvc` to your user `Path` environment variable in Windows Settings.
+
+### Intel macOS x86_64
+
+```sh
+set -euo pipefail
+archive="potoo-ap-csp-pseudocode-interpreter-v0.1.0-x86_64-apple-darwin.tar.gz"
+grep -F "  $archive" SHA256SUMS | shasum -a 256 -c -
+tar -xzf "$archive"
+mkdir -p "$HOME/.local/bin"
+install -m 755 "${archive%.tar.gz}/potoo-ap-csp" "$HOME/.local/bin/potoo-ap-csp"
+export PATH="$HOME/.local/bin:$PATH"
+potoo-ap-csp example.apcsp
+```
+
+### Apple silicon macOS arm64
+
+```sh
+set -euo pipefail
+archive="potoo-ap-csp-pseudocode-interpreter-v0.1.0-aarch64-apple-darwin.tar.gz"
+grep -F "  $archive" SHA256SUMS | shasum -a 256 -c -
+tar -xzf "$archive"
+mkdir -p "$HOME/.local/bin"
+install -m 755 "${archive%.tar.gz}/potoo-ap-csp" "$HOME/.local/bin/potoo-ap-csp"
+export PATH="$HOME/.local/bin:$PATH"
+potoo-ap-csp example.apcsp
+```
+
+On macOS, add the `export PATH="$HOME/.local/bin:$PATH"` line to `~/.zprofile` to keep the command available in future sessions.
 
 ## Reference
 
